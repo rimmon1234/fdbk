@@ -1,5 +1,8 @@
+import { loadEnvConfig } from "@next/env";
 import { connectToDatabase } from "@/lib/mongodb";
 import User from "@/models/User";
+
+loadEnvConfig(process.cwd());
 
 async function createAdmin() {
   const adminEmail = process.env.ADMIN_EMAIL;

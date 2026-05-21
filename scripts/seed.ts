@@ -1,9 +1,11 @@
+import { loadEnvConfig } from "@next/env";
 import { connectToDatabase } from "@/lib/mongodb";
 import User from "@/models/User";
+loadEnvConfig(process.cwd());
 
 const testers = [
-  ["tester01@example.com", "Tester 01"],
-  ["tester02@example.com", "Tester 02"],
+  ["shourjya.biswas.cse28@heritageit.edu.in", "Tester 01"],
+  ["rimmon.bhowmick.cse28@heritageit.edu.in", "Tester 02"],
   ["tester03@example.com", "Tester 03"],
   ["tester04@example.com", "Tester 04"],
   ["tester05@example.com", "Tester 05"],
