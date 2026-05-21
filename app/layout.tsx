@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Script from "next/script";
 
-import ThemeToggle from "@/components/ThemeToggle";
 import Providers from "@/app/providers";
 import "./globals.css";
 
@@ -24,7 +23,6 @@ export default function RootLayout({
       </head>
       <body className="min-h-screen bg-[var(--background)] text-[var(--foreground)] antialiased [font-family:var(--font-body)]">
         <Providers>
-          <ThemeToggle />
           {children}
         </Providers>
       </body>

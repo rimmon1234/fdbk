@@ -1,7 +1,6 @@
 "use client";
 
 import { motion } from "framer-motion";
-import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import {
   Bar,
@@ -55,26 +54,7 @@ export default function DashboardPage() {
   }, [data]);
 
   return (
-    <div className="min-h-screen bg-[var(--background)] md:grid md:grid-cols-[250px_1fr]">
-      <aside className="border-r border-[var(--sidebar-border)] bg-[var(--sidebar)] p-4">
-        <nav className="space-y-2">
-          {[
-            { href: "/dashboard", label: "Overview" },
-            { href: "/dashboard", label: "Question Breakdown" },
-            { href: "/api/analytics/export?format=csv", label: "Export" },
-          ].map((item, index) => (
-            <Link
-              key={item.label}
-              href={item.href}
-              className={`block min-h-11 rounded-[var(--radius)] px-3 py-2 hover:bg-[var(--sidebar-accent)] hover:text-[var(--sidebar-accent-foreground)] ${index === 0 ? "border-l-2 border-[var(--primary)]" : ""}`}
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
-      </aside>
-
-      <main className="space-y-6 p-4 md:p-6">
+    <main className="mx-auto max-w-7xl space-y-6 p-4 md:p-6">
         <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {[
             { label: "Total Responses", value: data?.totalResponses ?? 0 },
@@ -151,6 +131,5 @@ export default function DashboardPage() {
           })}
         </section>
       </main>
-    </div>
   );
 }

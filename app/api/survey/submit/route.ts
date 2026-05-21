@@ -58,7 +58,6 @@ export async function POST(request: Request) {
 
   await AnonymousResponse.create({
     surveyId,
-    submittedAt: new Date(),
     answers: encryptedAnswers,
   });
 

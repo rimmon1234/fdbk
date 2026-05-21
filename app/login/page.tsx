@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
+import ThemeToggle from "@/components/ThemeToggle";
 
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
@@ -12,6 +13,7 @@ import Input from "@/components/ui/Input";
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -22,6 +24,7 @@ export default function LoginPage() {
 
     const result = await signIn("credentials", {
       email,
+      password,
       redirect: false,
     });
 
@@ -36,6 +39,7 @@ export default function LoginPage() {
 
   return (
     <main className="flex min-h-screen items-center justify-center p-6">
+      <ThemeToggle />
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -54,6 +58,14 @@ export default function LoginPage() {
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               placeholder="your.email@example.com"
+              className="border-[var(--input)] bg-[var(--background)] text-[var(--foreground)]"
+            />
+            <Input
+              type="password"
+              required
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              placeholder="Password"
               className="border-[var(--input)] bg-[var(--background)] text-[var(--foreground)]"
             />
             {error ? <p className="text-sm text-[var(--destructive)]">{error}</p> : null}

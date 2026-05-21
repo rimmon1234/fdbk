@@ -8,14 +8,12 @@ export interface IAnonymousAnswer {
 
 export interface IAnonymousResponse {
   surveyId: Types.ObjectId;
-  submittedAt: Date;
   answers: string | IAnonymousAnswer[];
 }
 
 const anonymousResponseSchema = new Schema<IAnonymousResponse>(
   {
     surveyId: { type: Schema.Types.ObjectId, ref: "Survey", required: true },
-    submittedAt: { type: Date, default: Date.now },
     answers: {
       type: Schema.Types.Mixed,
       required: true,

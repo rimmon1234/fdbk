@@ -108,7 +108,7 @@ export default function SurveyBuilderPage() {
   };
 
   return (
-    <div className="space-y-6 p-4 md:p-6">
+    <main className="mx-auto max-w-7xl space-y-6 p-4 md:p-6">
       <h1 className="text-2xl font-semibold">Survey Builder</h1>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <Card className="space-y-4">
@@ -309,6 +309,6 @@ export default function SurveyBuilderPage() {
           </Button>
         </Card>
       </form>
-    </div>
+    </main>
   );
 }

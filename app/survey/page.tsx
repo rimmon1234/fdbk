@@ -4,9 +4,11 @@ import { format } from "date-fns";
 import { AnimatePresence, motion } from "framer-motion";
 import { Star } from "lucide-react";
 import { useEffect, useMemo, useReducer, useState } from "react";
+import { z } from "zod";
 
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
+import ThemeToggle from "@/components/ThemeToggle";
 
 type Question = {
   _id: string;
@@ -114,7 +116,10 @@ export default function SurveyPage() {
 
   if (status?.hasSubmitted) {
     return (
-      <main className="flex min-h-screen items-center justify-center p-6">
+      <main className="flex min-h-screen flex-col items-center p-4 py-8 md:p-6">
+        <div className="mb-8 w-full max-w-lg">
+          <ThemeToggle />
+        </div>
         <Card className="max-w-lg space-y-4 text-center">
           <motion.svg viewBox="0 0 52 52" className="mx-auto h-24 w-24" fill="none" stroke="var(--primary)">
             <motion.circle

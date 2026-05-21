@@ -7,6 +7,8 @@ export interface IUser {
   hasSubmitted: boolean;
   createdAt: Date;
   lastLoginAt?: Date;
+  password?: string;
+  role: "admin" | "tester";
 }
 
 const userSchema = new Schema<IUser>(
@@ -17,6 +19,8 @@ const userSchema = new Schema<IUser>(
     hasSubmitted: { type: Boolean, default: false },
     createdAt: { type: Date, default: Date.now },
     lastLoginAt: { type: Date },
+    password: { type: String },
+    role: { type: String, enum: ["admin", "tester"], default: "tester" },
   },
   { timestamps: false }
 );

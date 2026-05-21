@@ -1,17 +1,25 @@
 import { loadEnvConfig } from "@next/env";
 import { connectToDatabase } from "@/lib/mongodb";
 import User from "@/models/User";
+import bcryptjs from "bcryptjs";
 
 loadEnvConfig(process.cwd());
 
 async function createAdmin() {
   const adminEmail = process.env.ADMIN_EMAIL;
+  const adminPassword = process.env.ADMIN_PASSWORD;
 
   if (!adminEmail) {
     throw new Error("Missing ADMIN_EMAIL");
   }
 
+  if (!adminPassword) {
+    throw new Error("Missing ADMIN_PASSWORD");
+  }
+
   await connectToDatabase();
+
+  const hashedPassword = await bcryptjs.hash(adminPassword, 10);
 
   await User.updateOne(
     { email: adminEmail },
@@ -21,6 +29,8 @@ async function createAdmin() {
         isAuthorized: true,
         hasSubmitted: false,
         createdAt: new Date(),
+        password: hashedPassword,
+        role: "admin",
       },
     },
     { upsert: true }
