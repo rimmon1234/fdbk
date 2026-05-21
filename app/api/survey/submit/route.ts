@@ -44,11 +44,11 @@ export async function POST(request: Request) {
   }
 
   let temporaryAnonymousToken: string | null = crypto.randomBytes(32).toString("hex");
+  if (temporaryAnonymousToken.length !== 64) {
+    return NextResponse.json({ error: "Failed to generate anonymous token" }, { status: 500 });
+  }
 
-  const encryptedAnswers = CryptoJS.AES.encrypt(
-    JSON.stringify({ token: temporaryAnonymousToken, answers }),
-    process.env.ENCRYPTION_KEY
-  ).toString();
+  const encryptedAnswers = CryptoJS.AES.encrypt(JSON.stringify(answers), process.env.ENCRYPTION_KEY).toString();
 
   await AnonymousResponse.create({
     surveyId,
