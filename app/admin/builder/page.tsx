@@ -11,12 +11,14 @@ import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import { SurveyInput, surveySchema } from "@/lib/schemas";
 
+const DEFAULT_TEXT_CHARACTER_LIMIT = 200;
+
 const emptyQuestion = (type: SurveyInput["questions"][number]["type"]): SurveyInput["questions"][number] => ({
   type,
   prompt: "",
   placeholder: "",
   isRequired: true,
-  characterLimit: type === "text" ? 200 : undefined,
+  characterLimit: type === "text" ? DEFAULT_TEXT_CHARACTER_LIMIT : undefined,
   shuffleOptions: false,
   options: type === "text" || type === "rating" ? [] : ["Option 1", "Option 2"],
 });

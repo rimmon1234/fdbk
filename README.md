@@ -33,7 +33,7 @@ Only analytics endpoints decrypt data in memory for aggregation.
 
 ## Tech stack
 
-- Next.js 16+ App Router with TypeScript
+- Next.js 16.2.6 App Router with TypeScript
 - Tailwind CSS v4 tokens mapped from CSS custom properties
 - NextAuth Credentials provider
 - MongoDB + Mongoose

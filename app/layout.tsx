@@ -16,6 +16,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "try{var t=localStorage.getItem('theme');if(t==='dark'){document.documentElement.classList.add('dark')}}catch(e){}",
+          }}
+        />
+      </head>
       <body className="min-h-screen bg-[var(--background)] text-[var(--foreground)] antialiased [font-family:var(--font-body)]">
         <Providers>
           <ThemeToggle />

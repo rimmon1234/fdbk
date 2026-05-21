@@ -47,6 +47,12 @@ export async function POST(request: Request) {
   if (temporaryAnonymousToken.length !== 64) {
     return NextResponse.json({ error: "Failed to generate anonymous token" }, { status: 500 });
   }
+  const transientChecksum = CryptoJS.SHA256(
+    `${temporaryAnonymousToken}:${JSON.stringify(answers)}`
+  ).toString(CryptoJS.enc.Hex);
+  if (!transientChecksum) {
+    return NextResponse.json({ error: "Failed to prepare anonymous payload" }, { status: 500 });
+  }
 
   const encryptedAnswers = CryptoJS.AES.encrypt(JSON.stringify(answers), process.env.ENCRYPTION_KEY).toString();
 

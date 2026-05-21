@@ -57,10 +57,16 @@ export async function GET() {
     );
     if (!decrypted) continue;
 
-    const parsed = JSON.parse(decrypted) as
-      | Array<{ questionId: string; questionType: string; value: string | string[] | number }>
-      | { answers: Array<{ questionId: string; questionType: string; value: string | string[] | number }> };
-    const normalizedAnswers = Array.isArray(parsed) ? parsed : parsed.answers;
+    let normalizedAnswers: Array<{ questionId: string; questionType: string; value: string | string[] | number }> =
+      [];
+    try {
+      const parsed = JSON.parse(decrypted) as
+        | Array<{ questionId: string; questionType: string; value: string | string[] | number }>
+        | { answers: Array<{ questionId: string; questionType: string; value: string | string[] | number }> };
+      normalizedAnswers = Array.isArray(parsed) ? parsed : parsed.answers;
+    } catch {
+      continue;
+    }
 
     for (const answer of normalizedAnswers) {
       const aggregate = aggregateMap.get(String(answer.questionId));
