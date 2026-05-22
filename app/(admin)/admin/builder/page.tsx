@@ -88,7 +88,7 @@ export default function SurveyBuilderPage() {
   const hasTypeConstraintError = Object.values(typeCounts).some((count) => count < 3 || count > 5);
 
   const onAddQuestion = () => {
-    form.setValue("questions", [emptyQuestion(questionTypeToAdd), ...questions]);
+    form.setValue("questions", [...questions, emptyQuestion(questionTypeToAdd)]);
   };
 
   const onDragStart = (index: number) => setDragIndex(index);
@@ -215,7 +215,7 @@ export default function SurveyBuilderPage() {
                     placeholder="Question prompt"
                     className={inputClassName}
                   />
-                  {question.type !== "rating" && (
+                  {question.type === "text" && (
                     <input
                       value={question.placeholder ?? ""}
                       onChange={(event) => form.setValue(`questions.${index}.placeholder`, event.target.value)}
@@ -236,18 +236,26 @@ export default function SurveyBuilderPage() {
                       <>
                         <input
                           type="number"
+                          min={0}
                           value={question.minCharacterLimit ?? ""}
                           onChange={(event) =>
-                            form.setValue(`questions.${index}.minCharacterLimit`, Number(event.target.value) || undefined)
+                            form.setValue(
+                              `questions.${index}.minCharacterLimit`,
+                              event.target.value === "" ? undefined : Math.max(0, Number(event.target.value))
+                            )
                           }
                           placeholder="Min character limit"
                           className={inputClassName}
                         />
                         <input
                           type="number"
+                          min={0}
                           value={question.characterLimit ?? ""}
                           onChange={(event) =>
-                            form.setValue(`questions.${index}.characterLimit`, Number(event.target.value) || undefined)
+                            form.setValue(
+                              `questions.${index}.characterLimit`,
+                              event.target.value === "" ? undefined : Math.max(0, Number(event.target.value))
+                            )
                           }
                           placeholder="Max character limit"
                           className={inputClassName}

@@ -16,11 +16,37 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [step, setStep] = useState<"email" | "password">("email");
 
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsSubmitting(true);
     setError("");
+
+    if (step === "email") {
+      const response = await fetch(`/api/auth/admin-check?email=${encodeURIComponent(email)}`);
+      const data = await response.json();
+
+      if (data.isAdmin) {
+        setStep("password");
+        setIsSubmitting(false);
+        return;
+      }
+
+      const result = await signIn("credentials", {
+        email,
+        redirect: false,
+      });
+
+      if (result?.ok) {
+        router.push("/survey");
+        return;
+      }
+
+      setError("Unable to sign in. Please verify your authorized email.");
+      setIsSubmitting(false);
+      return;
+    }
 
     const result = await signIn("credentials", {
       email,
@@ -33,7 +59,7 @@ export default function LoginPage() {
       return;
     }
 
-    setError("Unable to sign in. Please verify your authorized email.");
+    setError("Unable to sign in. Please verify your admin credentials.");
     setIsSubmitting(false);
   };
 
@@ -56,21 +82,29 @@ export default function LoginPage() {
               type="email"
               required
               value={email}
-              onChange={(event) => setEmail(event.target.value)}
+              onChange={(event) => {
+                setEmail(event.target.value);
+                if (step === "password") {
+                  setStep("email");
+                  setPassword("");
+                }
+              }}
               placeholder="your.email@example.com"
               className="border-[var(--input)] bg-[var(--background)] text-[var(--foreground)]"
             />
-            <Input
-              type="password"
-              required
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              placeholder="Password"
-              className="border-[var(--input)] bg-[var(--background)] text-[var(--foreground)]"
-            />
+            {step === "password" && (
+              <Input
+                type="password"
+                required
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                placeholder="Password"
+                className="border-[var(--input)] bg-[var(--background)] text-[var(--foreground)]"
+              />
+            )}
             {error ? <p className="text-sm text-[var(--destructive)]">{error}</p> : null}
             <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? "Signing in..." : "Sign In"}
+              {isSubmitting ? "Signing in..." : step === "password" ? "Sign In" : "Continue"}
             </Button>
           </form>
         </Card>

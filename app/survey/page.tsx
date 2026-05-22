@@ -217,7 +217,7 @@ export default function SurveyPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[var(--background)] pb-28 md:pb-8">
+    <main className="flex min-h-screen flex-col bg-[var(--background)]">
       <div className="sticky top-0 z-30 bg-[var(--background)] px-4 pt-4">
         <div className="h-1 w-full overflow-hidden rounded bg-[var(--muted)]">
           <motion.div
@@ -232,7 +232,7 @@ export default function SurveyPage() {
         </p>
       </div>
 
-      <div className="mx-auto max-w-3xl px-4 py-6">
+      <div className="mx-auto flex w-full max-w-3xl flex-1 items-center px-4 py-6 pb-28 md:pb-6">
         <AnimatePresence mode="wait">
           <motion.div
             key={state.step}
@@ -240,6 +240,7 @@ export default function SurveyPage() {
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: -40, opacity: 0 }}
             transition={{ duration: 0.25 }}
+            className="w-full"
           >
             {state.step === 0 ? (
               <Card className="space-y-4">

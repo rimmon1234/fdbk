@@ -4,8 +4,8 @@ import { NextResponse } from "next/server";
 
 import { authOptions } from "@/lib/auth";
 import { connectToDatabase } from "@/lib/mongodb";
-import { getActiveSurvey } from "@/lib/survey";
 import AnonymousResponse from "@/models/AnonymousResponse";
+import Survey from "@/models/Survey";
 
 const stopwords = new Set(["the", "and", "for", "that", "this", "with", "from", "your", "have", "been"]);
 
@@ -17,9 +17,13 @@ type AggregatedItem = {
   data: Record<string, number>;
 };
 
-export async function GET() {
+function isAdminEmail(email?: string | null) {
+  return !!email && !!process.env.ADMIN_EMAIL && email === process.env.ADMIN_EMAIL;
+}
+
+export async function GET(request: Request) {
   const session = await getServerSession(authOptions);
-  if (!session?.user?.userId) {
+  if (!isAdminEmail(session?.user?.email)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -31,7 +35,11 @@ export async function GET() {
   }
 
   await connectToDatabase();
-  const survey = await getActiveSurvey();
+  const url = new URL(request.url);
+  const surveyId = url.searchParams.get("surveyId");
+  const survey = surveyId
+    ? await Survey.findById(surveyId).lean()
+    : await Survey.findOne({ status: "published" }).sort({ createdAt: -1 }).lean();
 
   if (!survey) {
     return NextResponse.json({ survey: null, aggregates: [] });

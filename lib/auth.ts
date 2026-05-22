@@ -17,20 +17,30 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
+        if (!credentials?.email) {
           return null;
         }
 
         await connectToDatabase();
 
-        const user = await User.findOne({ email: credentials.email.toLowerCase().trim() });
-        if (!user || !user.isAuthorized || !user.password) {
+        const normalizedEmail = credentials.email.toLowerCase().trim();
+        const user = await User.findOne({ email: normalizedEmail });
+        if (!user || !user.isAuthorized) {
           return null;
         }
 
-        const isPasswordValid = await bcryptjs.compare(credentials.password, user.password);
-        if (!isPasswordValid) {
-          return null;
+        const adminEmail = process.env.ADMIN_EMAIL?.toLowerCase().trim();
+        const isAdminLogin = !!adminEmail && normalizedEmail === adminEmail;
+
+        if (isAdminLogin) {
+          if (!credentials.password || !user.password || user.role !== "admin") {
+            return null;
+          }
+
+          const isPasswordValid = await bcryptjs.compare(credentials.password, user.password);
+          if (!isPasswordValid) {
+            return null;
+          }
         }
 
         user.lastLoginAt = new Date();

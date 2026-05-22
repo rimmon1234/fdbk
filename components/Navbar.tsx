@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu } from "lucide-react";
 import { useState } from "react";
-import Button from "./ui/Button";
 import ThemeToggle from "./ThemeToggle";
 
 const links = [
@@ -39,13 +38,6 @@ export default function Navbar() {
           </nav>
         </div>
         <div className="flex items-center gap-2">
-          {pathname === "/dashboard" && (
-            <Link href="/api/analytics/export?format=csv" className="hidden md:block">
-              <Button variant="secondary" size="sm">
-                Export CSV
-              </Button>
-            </Link>
-          )}
           <ThemeToggle className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)]" />
           <button
             className="inline-flex items-center justify-center rounded-md p-2 text-[var(--muted-foreground)] hover:bg-[var(--accent)] hover:text-[var(--accent-foreground)] md:hidden"
@@ -72,13 +64,6 @@ export default function Navbar() {
                 {link.label}
               </Link>
             ))}
-            {pathname === "/dashboard" && (
-              <Link href="/api/analytics/export?format=csv" onClick={() => setOpen(false)}>
-                <Button variant="secondary" size="sm" className="w-full">
-                  Export CSV
-                </Button>
-              </Link>
-            )}
           </nav>
         </div>
       )}
