@@ -32,13 +32,33 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   }
 
   const body = await request.json();
-  if (body.status !== "draft" && body.status !== "published") {
+  const nextStatus = body.status;
+  const nextActive = body.isActive;
+
+  if (nextStatus !== undefined && nextStatus !== "draft" && nextStatus !== "published") {
     return NextResponse.json({ error: "Invalid status" }, { status: 400 });
+  }
+
+  if (nextActive !== undefined && typeof nextActive !== "boolean") {
+    return NextResponse.json({ error: "Invalid isActive flag" }, { status: 400 });
   }
 
   await connectToDatabase();
   const { id } = await params;
-  const survey = await Survey.findByIdAndUpdate(id, { status: body.status }, { new: true }).lean();
+
+  if (nextActive === true) {
+    await Survey.updateMany({ isActive: true }, { isActive: false });
+  }
+
+  const update: Record<string, unknown> = {};
+  if (nextStatus !== undefined) {
+    update.status = nextStatus;
+  }
+  if (nextActive !== undefined) {
+    update.isActive = nextActive;
+  }
+
+  const survey = await Survey.findByIdAndUpdate(id, update, { new: true }).lean();
 
   if (!survey) {
     return NextResponse.json({ error: "Survey not found" }, { status: 404 });

@@ -20,6 +20,11 @@ export default function RootLayout({
         <Script id="theme-init" strategy="beforeInteractive">
           {"try{var t=localStorage.getItem('theme');if(t==='dark'){document.documentElement.classList.add('dark')}}catch(e){}"}
         </Script>
+        {process.env.NODE_ENV !== "production" ? (
+          <Script id="disable-next-dev-indicator" strategy="beforeInteractive">
+            {"try{fetch('/__nextjs_disable_dev_indicator').catch(function(){});}catch(e){}"}
+          </Script>
+        ) : null}
       </head>
       <body className="min-h-screen bg-[var(--background)] text-[var(--foreground)] antialiased [font-family:var(--font-body)]">
         <Providers>

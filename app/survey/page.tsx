@@ -7,7 +7,6 @@ import { useEffect, useMemo, useReducer, useState } from "react";
 
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
-import ThemeToggle from "@/components/ThemeToggle";
 
 type Question = {
   _id: string;
@@ -117,9 +116,6 @@ export default function SurveyPage() {
   if (status?.hasSubmitted) {
     return (
       <main className="flex min-h-screen flex-col items-center p-4 py-8 md:p-6">
-        <div className="mb-8 w-full max-w-lg">
-          <ThemeToggle />
-        </div>
         <Card className="max-w-lg space-y-4 text-center">
           <motion.svg viewBox="0 0 52 52" className="mx-auto h-24 w-24" fill="none" stroke="var(--primary)">
             <motion.circle
@@ -292,6 +288,19 @@ export default function SurveyPage() {
                         <span>Satisfies character requirements</span>
                       )}
                       <span>
+                            {isChecked && currentQuestion.type === "checkbox" && (
+                              <svg
+                                viewBox="0 0 24 24"
+                                className="h-4 w-4"
+                                fill="none"
+                                stroke="var(--primary-foreground)"
+                                strokeWidth="3"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              >
+                                <path d="M20 6L9 17l-5-5" />
+                              </svg>
+                            )}
                         {(currentQuestion.characterLimit ?? 1000) - String(state.answers[currentQuestion._id] ?? "").length} characters remaining
                       </span>
                     </div>
@@ -322,10 +331,16 @@ export default function SurveyPage() {
                               value: isChecked ? current.filter((item) => item !== option) : [...current, option],
                             });
                           }}
-                          className="flex min-h-11 w-full items-center gap-3 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-left"
+                          className={`flex min-h-11 w-full items-center gap-3 rounded-[var(--radius)] border px-3 py-2 text-left transition-colors ${
+                            isChecked
+                              ? "border-[var(--primary)] bg-[var(--primary)]/5"
+                              : "border-[var(--border)] bg-[var(--card)]"
+                          }`}
                         >
                           <span
-                            className={`h-4 w-4 rounded-full border border-[var(--primary)] ${isChecked ? "bg-[var(--primary)]" : "bg-transparent"}`}
+                            className={`flex h-4 w-4 items-center justify-center border border-[var(--primary)] ${
+                              currentQuestion.type === "checkbox" ? "rounded-[3px]" : "rounded-full"
+                            } ${isChecked ? "bg-[var(--primary)]" : "bg-transparent"}`}
                           />
                           {option}
                         </button>
@@ -340,7 +355,7 @@ export default function SurveyPage() {
                     onChange={(event) =>
                       dispatch({ type: "SET_ANSWER", questionId: currentQuestion._id, value: event.target.value })
                     }
-                    className="min-h-11 w-full rounded-[var(--radius)] border border-[var(--input)] bg-[var(--background)] px-3 py-2"
+                    className="min-h-11 w-full rounded-[var(--radius)] border border-[var(--primary)] bg-[var(--background)] px-3 py-2"
                   >
                     <option value="">Select an option</option>
                     {currentQuestion.options.map((option) => (
@@ -369,7 +384,7 @@ export default function SurveyPage() {
                             className={`h-8 w-8 transition-colors duration-150 ${
                               current >= value
                                 ? "fill-[var(--primary)] text-[var(--primary)]"
-                                : "fill-[var(--muted)] text-[var(--muted)]"
+                                : "fill-transparent text-[var(--primary)]"
                             }`}
                           />
                         </motion.button>
@@ -397,20 +412,22 @@ export default function SurveyPage() {
         </AnimatePresence>
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 border-t border-[var(--border)] bg-[var(--background)] p-3 md:static md:border-0 md:px-4">
-        <div className="mx-auto flex max-w-3xl justify-between gap-3">
-          <Button onClick={onBack} disabled={state.step === 0}>
-            Back
-          </Button>
-          {state.step === totalSteps - 1 ? (
-            <Button onClick={handleSubmit}>Submit</Button>
-          ) : (
-            <Button onClick={onNext} disabled={!isCurrentStepValid()}>
-              Next
+      {state.step > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 border-t border-[var(--border)] bg-[var(--background)] p-3 md:static md:border-0 md:px-4">
+          <div className="mx-auto flex max-w-3xl justify-between gap-3">
+            <Button onClick={onBack} disabled={state.step === 0}>
+              Back
             </Button>
-          )}
+            {state.step === totalSteps - 1 ? (
+              <Button onClick={handleSubmit}>Submit</Button>
+            ) : (
+              <Button onClick={onNext} disabled={!isCurrentStepValid()}>
+                Next
+              </Button>
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </main>
   );
 }

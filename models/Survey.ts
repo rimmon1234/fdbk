@@ -23,6 +23,7 @@ export interface ISurvey {
   expiresAt?: Date;
   estimatedMinutes?: number;
   instructions?: string;
+  isActive: boolean;
   status: "draft" | "published";
   questions: ISurveyQuestion[];
 }
@@ -51,6 +52,7 @@ const surveySchema = new Schema<ISurvey>(
     expiresAt: { type: Date },
     estimatedMinutes: { type: Number },
     instructions: { type: String },
+    isActive: { type: Boolean, default: false },
     status: {
       type: String,
       enum: ["draft", "published"],

@@ -88,7 +88,7 @@ export default function SurveyBuilderPage() {
   const hasTypeConstraintError = Object.values(typeCounts).some((count) => count < 3 || count > 5);
 
   const onAddQuestion = () => {
-    form.setValue("questions", [...questions, emptyQuestion(questionTypeToAdd)]);
+    form.setValue("questions", [emptyQuestion(questionTypeToAdd), ...questions]);
   };
 
   const onDragStart = (index: number) => setDragIndex(index);

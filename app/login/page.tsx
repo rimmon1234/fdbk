@@ -4,7 +4,6 @@ import { motion } from "framer-motion";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
-import ThemeToggle from "@/components/ThemeToggle";
 
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
@@ -65,7 +64,6 @@ export default function LoginPage() {
 
   return (
     <main className="flex min-h-screen items-center justify-center p-6">
-      <ThemeToggle />
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

@@ -3,7 +3,7 @@
 import { Moon, Sun } from "lucide-react";
 import { useEffect, useState } from "react";
 
-export default function ThemeToggle({ className }: { className?: string }) {
+export default function ThemeToggle({ className, hidden }: { className?: string; hidden?: boolean }) {
   const [mounted, setMounted] = useState(false);
   const [isDark, setIsDark] = useState(false);
 
@@ -27,7 +27,7 @@ export default function ThemeToggle({ className }: { className?: string }) {
     setIsDark((current) => !current);
   };
 
-  if (!mounted) {
+  if (!mounted || hidden) {
     return null;
   }
 

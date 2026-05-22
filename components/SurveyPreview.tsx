@@ -49,26 +49,6 @@ export default function SurveyPreview({ isOpen, onClose, surveyData }: SurveyPre
   }, [step, totalSteps]);
 
   const isCurrentStepValid = () => {
-    if (!currentQuestion) return true;
-    const value = answers[currentQuestion._id || ""] ?? "";
-    const strValue = String(value);
-
-    // Required check
-    if (currentQuestion.isRequired) {
-      if (Array.isArray(value)) {
-        if (value.length === 0) return false;
-      } else {
-        if (!strValue || strValue.trim() === "") return false;
-      }
-    }
-
-    // Min character limit check
-    if (currentQuestion.type === "text" && currentQuestion.minCharacterLimit) {
-      if (currentQuestion.isRequired || strValue.length > 0) {
-        if (strValue.length < currentQuestion.minCharacterLimit) return false;
-      }
-    }
-
     return true;
   };
 
@@ -246,12 +226,22 @@ export default function SurveyPreview({ isOpen, onClose, surveyData }: SurveyPre
                             }`}
                           >
                             <span
-                              className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-[var(--primary)] transition-all ${
-                                isChecked ? "bg-[var(--primary)]" : "bg-transparent"
-                              }`}
+                              className={`flex h-4 w-4 shrink-0 items-center justify-center border border-[var(--primary)] transition-all ${
+                                currentQuestion.type === "checkbox" ? "rounded-[3px]" : "rounded-full"
+                              } ${isChecked ? "bg-[var(--primary)]" : "bg-transparent"}`}
                             >
                               {isChecked && currentQuestion.type === "checkbox" && (
-                                <span className="h-1.5 w-1.5 rounded-full bg-[var(--primary-foreground)]" />
+                                <svg
+                                  viewBox="0 0 24 24"
+                                  className="h-4 w-4"
+                                  fill="none"
+                                  stroke="var(--primary-foreground)"
+                                  strokeWidth="3"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                >
+                                  <path d="M20 6L9 17l-5-5" />
+                                </svg>
                               )}
                             </span>
                             <span className="text-sm font-medium text-[var(--foreground)]">{option}</span>
@@ -268,7 +258,7 @@ export default function SurveyPreview({ isOpen, onClose, surveyData }: SurveyPre
                       onChange={(event) => {
                         setAnswers((prev) => ({ ...prev, [currentQuestion._id || ""]: event.target.value }));
                       }}
-                      className="min-h-11 w-full rounded-[var(--radius)] border border-[var(--input)] bg-[var(--background)] px-3 py-2 text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
+                      className="min-h-11 w-full rounded-[var(--radius)] border border-[var(--primary)] bg-[var(--background)] px-3 py-2 text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
                     >
                       <option value="">Select an option</option>
                       {currentQuestion.options.map((option) => (
@@ -299,7 +289,7 @@ export default function SurveyPreview({ isOpen, onClose, surveyData }: SurveyPre
                               className={`h-8 w-8 transition-colors duration-150 ${
                                 current >= value
                                   ? "fill-[var(--primary)] text-[var(--primary)]"
-                                  : "fill-[var(--muted)] text-[var(--muted)]"
+                                  : "fill-transparent text-[var(--primary)]"
                               }`}
                             />
                           </motion.button>
