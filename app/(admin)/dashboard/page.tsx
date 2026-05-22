@@ -40,9 +40,12 @@ type AnalyticsPayload = {
 const piePalette = ["var(--chart-1)", "var(--chart-2)", "var(--chart-3)", "var(--chart-4)", "var(--chart-5)"];
 
 export default function DashboardPage() {
+  const [isMounted, setIsMounted] = useState(false);
   const [data, setData] = useState<AnalyticsPayload | null>(null);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIsMounted(true);
     fetch("/api/analytics")
       .then((res) => res.json())
       .then((json) => setData(json));
@@ -89,41 +92,43 @@ export default function DashboardPage() {
                     <p className="text-sm text-[var(--muted-foreground)]">{aggregate.responseCount} responses</p>
                   </div>
 
-                  <div className="h-64 w-full">
-                    <ResponsiveContainer>
-                      {aggregate.type === "radio" || aggregate.type === "dropdown" ? (
-                        <PieChart>
-                          <Pie data={chartData} dataKey="value" nameKey="name" outerRadius={90}>
-                            {chartData.map((entry, index) => (
-                              <Cell key={entry.name} fill={piePalette[index % piePalette.length]} />
-                            ))}
-                          </Pie>
-                          <Legend wrapperStyle={{ color: "var(--muted-foreground)" }} />
-                          <Tooltip
-                            contentStyle={{
-                              background: "var(--popover)",
-                              color: "var(--popover-foreground)",
-                              border: "1px solid var(--border)",
-                            }}
-                          />
-                        </PieChart>
-                      ) : (
-                        <BarChart data={chartData}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                          <XAxis dataKey="name" stroke="var(--muted-foreground)" />
-                          <YAxis stroke="var(--muted-foreground)" />
-                          <Tooltip
-                            contentStyle={{
-                              background: "var(--popover)",
-                              color: "var(--popover-foreground)",
-                              border: "1px solid var(--border)",
-                            }}
-                          />
-                          <Legend wrapperStyle={{ color: "var(--muted-foreground)" }} />
-                          <Bar dataKey="value" fill="var(--chart-1)" activeBar={{ fill: "var(--chart-2)" }} />
-                        </BarChart>
-                      )}
-                    </ResponsiveContainer>
+                  <div className="h-64 w-full min-h-64 min-w-0">
+                    {isMounted && (
+                      <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
+                        {aggregate.type === "radio" || aggregate.type === "dropdown" ? (
+                          <PieChart>
+                            <Pie data={chartData} dataKey="value" nameKey="name" outerRadius={90}>
+                              {chartData.map((entry) => (
+                                <Cell key={entry.name} fill={piePalette[chartData.indexOf(entry) % piePalette.length]} />
+                              ))}
+                            </Pie>
+                            <Legend wrapperStyle={{ color: "var(--muted-foreground)" }} />
+                            <Tooltip
+                              contentStyle={{
+                                background: "var(--popover)",
+                                color: "var(--popover-foreground)",
+                                border: "1px solid var(--border)",
+                              }}
+                            />
+                          </PieChart>
+                        ) : (
+                          <BarChart data={chartData}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                            <XAxis dataKey="name" stroke="var(--muted-foreground)" />
+                            <YAxis stroke="var(--muted-foreground)" />
+                            <Tooltip
+                              contentStyle={{
+                                background: "var(--popover)",
+                                color: "var(--popover-foreground)",
+                                border: "1px solid var(--border)",
+                              }}
+                            />
+                            <Legend wrapperStyle={{ color: "var(--muted-foreground)" }} />
+                            <Bar dataKey="value" fill="var(--chart-1)" activeBar={{ fill: "var(--chart-2)" }} />
+                          </BarChart>
+                        )}
+                      </ResponsiveContainer>
+                    )}
                   </div>
                 </Card>
               </motion.div>

@@ -4,7 +4,6 @@ import { format } from "date-fns";
 import { AnimatePresence, motion } from "framer-motion";
 import { Star } from "lucide-react";
 import { useEffect, useMemo, useReducer, useState } from "react";
-import { z } from "zod";
 
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
@@ -17,6 +16,7 @@ type Question = {
   placeholder?: string;
   isRequired: boolean;
   characterLimit?: number;
+  minCharacterLimit?: number;
   shuffleOptions?: boolean;
   options?: string[];
 };
@@ -163,10 +163,27 @@ export default function SurveyPage() {
   };
 
   const isCurrentStepValid = () => {
-    if (!currentQuestion || !currentQuestion.isRequired) return true;
+    if (!currentQuestion) return true;
     const value = state.answers[currentQuestion._id];
-    if (Array.isArray(value)) return value.length > 0;
-    return value !== undefined && value !== "";
+    const strValue = String(value ?? "");
+
+    // Required check
+    if (currentQuestion.isRequired) {
+      if (Array.isArray(value)) {
+        if (value.length === 0) return false;
+      } else {
+        if (value === undefined || value === "" || strValue.trim() === "") return false;
+      }
+    }
+
+    // Min character limit check for text inputs
+    if (currentQuestion.type === "text" && currentQuestion.minCharacterLimit) {
+      if (currentQuestion.isRequired || (value !== undefined && strValue.length > 0)) {
+        if (strValue.length < currentQuestion.minCharacterLimit) return false;
+      }
+    }
+
+    return true;
   };
 
   const handleSubmit = async () => {
@@ -265,10 +282,18 @@ export default function SurveyPage() {
                       placeholder={currentQuestion.placeholder}
                       className="min-h-32 w-full rounded-[var(--radius)] border border-[var(--input)] bg-[var(--background)] p-3"
                     />
-                    <p className="text-sm text-[var(--muted-foreground)]">
-                      {(currentQuestion.characterLimit ?? 1000) - String(state.answers[currentQuestion._id] ?? "").length} characters
-                      remaining
-                    </p>
+                    <div className="flex flex-col sm:flex-row justify-between gap-1 text-sm text-[var(--muted-foreground)]">
+                      {currentQuestion.minCharacterLimit && String(state.answers[currentQuestion._id] ?? "").length < currentQuestion.minCharacterLimit ? (
+                        <span className="text-[var(--destructive)] font-medium">
+                          Minimum {currentQuestion.minCharacterLimit} characters required (currently {String(state.answers[currentQuestion._id] ?? "").length})
+                        </span>
+                      ) : (
+                        <span>Satisfies character requirements</span>
+                      )}
+                      <span>
+                        {(currentQuestion.characterLimit ?? 1000) - String(state.answers[currentQuestion._id] ?? "").length} characters remaining
+                      </span>
+                    </div>
                   </>
                 ) : null}
 
@@ -331,16 +356,22 @@ export default function SurveyPage() {
                       const value = index + 1;
                       const current = Number(state.answers[currentQuestion._id] ?? 0);
                       return (
-                        <button
+                        <motion.button
                           key={value}
                           type="button"
                           onClick={() => dispatch({ type: "SET_ANSWER", questionId: currentQuestion._id, value })}
-                          className="inline-flex min-h-11 min-w-11 items-center justify-center"
+                          whileTap={{ scale: 0.85 }}
+                          whileHover={{ scale: 1.15 }}
+                          className="inline-flex min-h-11 min-w-11 items-center justify-center transition-colors"
                         >
                           <Star
-                            className={`h-7 w-7 ${current >= value ? "fill-[var(--chart-2)] text-[var(--chart-2)]" : "fill-[var(--muted)] text-[var(--muted)]"}`}
+                            className={`h-8 w-8 transition-colors duration-150 ${
+                              current >= value
+                                ? "fill-[var(--primary)] text-[var(--primary)]"
+                                : "fill-[var(--muted)] text-[var(--muted)]"
+                            }`}
                           />
-                        </button>
+                        </motion.button>
                       );
                     })}
                   </div>

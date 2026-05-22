@@ -9,16 +9,25 @@ import { z } from "zod";
 
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
+import SurveyPreview from "@/components/SurveyPreview";
 import { SurveyInput, surveySchema } from "@/lib/schemas";
 
 const DEFAULT_TEXT_CHARACTER_LIMIT = 200;
 
+const generateObjectIdString = () => {
+  const timestamp = Math.floor(Date.now() / 1000).toString(16).padStart(8, "0");
+  const random = Array.from({ length: 16 }, () => Math.floor(Math.random() * 16).toString(16)).join("");
+  return timestamp + random;
+};
+
 const emptyQuestion = (type: SurveyInput["questions"][number]["type"]): SurveyInput["questions"][number] => ({
+  _id: generateObjectIdString(),
   type,
   prompt: "",
-  placeholder: "",
+  placeholder: type === "rating" ? undefined : "",
   isRequired: true,
   characterLimit: type === "text" ? DEFAULT_TEXT_CHARACTER_LIMIT : undefined,
+  minCharacterLimit: undefined,
   shuffleOptions: false,
   options: type === "text" || type === "rating" ? [] : ["Option 1", "Option 2"],
 });
@@ -44,6 +53,7 @@ export default function SurveyBuilderPage() {
   const [questionTypeToAdd, setQuestionTypeToAdd] = useState<FormValues["questions"][number]["type"]>("text");
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [submitError, setSubmitError] = useState("");
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -59,6 +69,12 @@ export default function SurveyBuilderPage() {
     },
   });
 
+  const title = useWatch({ control: form.control, name: "title" }) ?? "";
+  const introduction = useWatch({ control: form.control, name: "introduction" }) ?? "";
+  const description = useWatch({ control: form.control, name: "description" }) ?? "";
+  const disclaimer = useWatch({ control: form.control, name: "disclaimer" }) ?? "";
+  const estimatedMinutes = useWatch({ control: form.control, name: "estimatedMinutes" }) ?? 10;
+  const instructions = useWatch({ control: form.control, name: "instructions" }) ?? "";
   const watchedQuestions = useWatch({ control: form.control, name: "questions" });
   const questions = useMemo(() => watchedQuestions ?? [], [watchedQuestions]);
 
@@ -72,7 +88,7 @@ export default function SurveyBuilderPage() {
   const hasTypeConstraintError = Object.values(typeCounts).some((count) => count < 3 || count > 5);
 
   const onAddQuestion = () => {
-    form.setValue("questions", [...questions, emptyQuestion(questionTypeToAdd)]);
+    form.setValue("questions", [emptyQuestion(questionTypeToAdd), ...questions]);
   };
 
   const onDragStart = (index: number) => setDragIndex(index);
@@ -172,7 +188,7 @@ export default function SurveyBuilderPage() {
           <div className="space-y-3">
             {questions.map((question, index) => (
               <motion.div
-                key={`${question.type}-${index}`}
+                key={question._id ?? index}
                 whileHover={{ scale: 1.01, transition: { duration: 0.15 } }}
                 draggable
                 onDragStart={() => onDragStart(index)}
@@ -199,13 +215,15 @@ export default function SurveyBuilderPage() {
                     placeholder="Question prompt"
                     className={inputClassName}
                   />
-                  <input
-                    value={question.placeholder ?? ""}
-                    onChange={(event) => form.setValue(`questions.${index}.placeholder`, event.target.value)}
-                    placeholder="Placeholder text"
-                    className={inputClassName}
-                  />
-                  <div className="grid gap-4 md:grid-cols-2">
+                  {question.type !== "rating" && (
+                    <input
+                      value={question.placeholder ?? ""}
+                      onChange={(event) => form.setValue(`questions.${index}.placeholder`, event.target.value)}
+                      placeholder="Placeholder text"
+                      className={inputClassName}
+                    />
+                  )}
+                  <div className={question.type === "text" ? "grid gap-4 md:grid-cols-3" : ""}>
                     <label className="flex min-h-11 items-center gap-2 rounded-[var(--radius)] border border-[var(--border)] px-3 py-2">
                       <input
                         type="checkbox"
@@ -214,23 +232,37 @@ export default function SurveyBuilderPage() {
                       />
                       Required
                     </label>
-                    <input
-                      type="number"
-                      value={question.characterLimit ?? ""}
-                      onChange={(event) =>
-                        form.setValue(`questions.${index}.characterLimit`, Number(event.target.value) || undefined)
-                      }
-                      placeholder="Character limit"
-                      className={inputClassName}
-                    />
+                    {question.type === "text" && (
+                      <>
+                        <input
+                          type="number"
+                          value={question.minCharacterLimit ?? ""}
+                          onChange={(event) =>
+                            form.setValue(`questions.${index}.minCharacterLimit`, Number(event.target.value) || undefined)
+                          }
+                          placeholder="Min character limit"
+                          className={inputClassName}
+                        />
+                        <input
+                          type="number"
+                          value={question.characterLimit ?? ""}
+                          onChange={(event) =>
+                            form.setValue(`questions.${index}.characterLimit`, Number(event.target.value) || undefined)
+                          }
+                          placeholder="Max character limit"
+                          className={inputClassName}
+                        />
+                      </>
+                    )}
                   </div>
                   {question.type === "radio" || question.type === "checkbox" || question.type === "dropdown" ? (
                     <div className="space-y-2">
                       {(question.options ?? []).map((option, optionIndex) => (
-                        <div key={`${option}-${optionIndex}`} className="flex items-center gap-2">
+                        <div key={optionIndex} className="flex items-center gap-2">
                           <input
                             className={inputClassName}
                             value={option}
+                            onFocus={(event) => event.target.select()}
                             onChange={(event) =>
                               form.setValue(
                                 `questions.${index}.options`,
@@ -304,11 +336,34 @@ export default function SurveyBuilderPage() {
           </div>
 
           {submitError ? <p className="text-sm text-[var(--destructive)]">{submitError}</p> : null}
-          <Button type="submit" disabled={questions.length === 0 || hasTypeConstraintError}>
-            Publish Survey
-          </Button>
+          <div className="flex flex-wrap gap-3">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => setIsPreviewOpen(true)}
+              disabled={questions.length === 0}
+            >
+              Preview Survey
+            </Button>
+            <Button type="submit" disabled={questions.length === 0 || hasTypeConstraintError}>
+              Publish Survey
+            </Button>
+          </div>
         </Card>
       </form>
+      <SurveyPreview
+        isOpen={isPreviewOpen}
+        onClose={() => setIsPreviewOpen(false)}
+        surveyData={{
+          title,
+          introduction,
+          description,
+          disclaimer,
+          estimatedMinutes: Number(estimatedMinutes) || undefined,
+          instructions,
+          questions,
+        }}
+      />
     </main>
   );
 }

@@ -9,6 +9,7 @@ export interface ISurveyQuestion {
   placeholder?: string;
   isRequired: boolean;
   characterLimit?: number;
+  minCharacterLimit?: number;
   shuffleOptions: boolean;
   options: string[];
 }
@@ -33,6 +34,7 @@ const questionSchema = new Schema<ISurveyQuestion>(
     placeholder: { type: String },
     isRequired: { type: Boolean, default: true },
     characterLimit: { type: Number },
+    minCharacterLimit: { type: Number },
     shuffleOptions: { type: Boolean, default: false },
     options: [{ type: String }],
   },
