@@ -25,7 +25,7 @@ export const authOptions: NextAuthOptions = {
 
         const normalizedEmail = credentials.email.toLowerCase().trim();
         const user = await User.findOne({ email: normalizedEmail });
-        if (!user || !user.isAuthorized) {
+        if (!user || user.isAuthorized === false) {
           return null;
         }
 

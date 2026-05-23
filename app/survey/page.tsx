@@ -4,6 +4,7 @@ import { format } from "date-fns";
 import { AnimatePresence, motion } from "framer-motion";
 import { Star } from "lucide-react";
 import { useEffect, useMemo, useReducer, useState } from "react";
+import { useSearchParams } from "next/navigation";
 
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
@@ -92,6 +93,7 @@ export default function SurveyPage() {
   const [state, dispatch] = useReducer(reducer, initialState);
   const [loading, setLoading] = useState(true);
   const [submitError, setSubmitError] = useState("");
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     fetch("/api/survey/status")
@@ -99,6 +101,13 @@ export default function SurveyPage() {
       .then((data) => setStatus(data))
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    const shouldSkipIntro = searchParams.get("start") === "1";
+    if (shouldSkipIntro && status?.survey && !status.hasSubmitted) {
+      dispatch({ type: "SET_STEP", payload: 1 });
+    }
+  }, [searchParams, status]);
 
   const questions = status?.survey?.questions ?? [];
   const totalSteps = questions.length + 2;
@@ -136,6 +145,9 @@ export default function SurveyPage() {
             />
           </motion.svg>
           <h1 className="text-2xl font-semibold text-[var(--foreground)]">Your response has been recorded</h1>
+          <p className="text-sm text-[var(--muted-foreground)]">
+            Thank you for reviewing Centralized Attendance Portal
+          </p>
           <p className="text-[var(--muted-foreground)]">This survey only allows one submission per participant</p>
         </Card>
       </main>
@@ -214,19 +226,23 @@ export default function SurveyPage() {
 
   return (
     <main className="flex min-h-screen flex-col bg-[var(--background)]">
-      <div className="sticky top-0 z-30 bg-[var(--background)] px-4 pt-4">
-        <div className="h-1 w-full overflow-hidden rounded bg-[var(--muted)]">
-          <motion.div
-            layoutId="survey-progress"
-            className="h-full bg-[var(--primary)]"
-            animate={{ width: `${progress}%` }}
-            transition={{ duration: 0.4, ease: "easeInOut" }}
-          />
+      {state.step > 0 && (
+        <div className="sticky top-0 z-30 bg-[var(--background)] px-4 pt-4">
+          <div className="h-1 w-full overflow-hidden rounded bg-[var(--muted)]">
+            <motion.div
+              layoutId="survey-progress"
+              className="h-full bg-[var(--primary)]"
+              animate={{ width: `${progress}%` }}
+              transition={{ duration: 0.4, ease: "easeInOut" }}
+            />
+          </div>
+          <p className="mt-2 text-sm text-[var(--muted-foreground)]">
+            {state.step <= questions.length
+              ? `Step ${state.step} of ${questions.length}`
+              : `Step ${questions.length + 1} of ${questions.length + 1}`}
+          </p>
         </div>
-        <p className="mt-2 text-sm text-[var(--muted-foreground)]">
-          Step {Math.min(state.step + 1, totalSteps)} of {totalSteps}
-        </p>
-      </div>
+      )}
 
       <div className="mx-auto flex w-full max-w-3xl flex-1 items-center px-4 py-6 pb-28 md:pb-6">
         <AnimatePresence mode="wait">
@@ -288,19 +304,6 @@ export default function SurveyPage() {
                         <span>Satisfies character requirements</span>
                       )}
                       <span>
-                            {isChecked && currentQuestion.type === "checkbox" && (
-                              <svg
-                                viewBox="0 0 24 24"
-                                className="h-4 w-4"
-                                fill="none"
-                                stroke="var(--primary-foreground)"
-                                strokeWidth="3"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              >
-                                <path d="M20 6L9 17l-5-5" />
-                              </svg>
-                            )}
                         {(currentQuestion.characterLimit ?? 1000) - String(state.answers[currentQuestion._id] ?? "").length} characters remaining
                       </span>
                     </div>
@@ -338,10 +341,25 @@ export default function SurveyPage() {
                           }`}
                         >
                           <span
-                            className={`flex h-4 w-4 items-center justify-center border border-[var(--primary)] ${
+                            className={`flex h-4 w-4 items-center justify-center border border-[var(--primary)] text-[var(--primary-foreground)] ${
                               currentQuestion.type === "checkbox" ? "rounded-[3px]" : "rounded-full"
                             } ${isChecked ? "bg-[var(--primary)]" : "bg-transparent"}`}
-                          />
+                          >
+                            {isChecked && currentQuestion.type === "checkbox" && (
+                              <svg
+                                viewBox="0 0 24 24"
+                                className="h-4 w-4"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="3"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                aria-hidden="true"
+                              >
+                                <path d="M20 6L9 17l-5-5" />
+                              </svg>
+                            )}
+                          </span>
                           {option}
                         </button>
                       );
