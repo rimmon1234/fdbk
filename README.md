@@ -7,7 +7,7 @@ FDBK is a full-stack anonymous survey web app for lab-course evaluation workflow
 The anonymity model is based on strict separation of identity and answer content:
 
 - **SubmissionRecord** stores only identity linkage (`userId`, `surveyId`, `submittedAt`) to enforce one submission per participant.
-- **AnonymousResponse** stores only survey content (`surveyId`, encrypted `answers`, `submittedAt`) and contains no user identity fields.
+- **AnonymousResponse** stores only survey content (`surveyId`, anonymous `group`/`persona`, encrypted `answers`, `submittedAt`) and contains no user identity fields.
 - There is **no shared join key** between a user and an individual anonymous answer payload.
 
 ### Why this is anonymous
@@ -51,6 +51,11 @@ Create `.env.local` and set:
 - `ADMIN_EMAIL`
 - `ENCRYPTION_KEY` (application-enforced to exactly 32 characters for AES-256 key length consistency)
 - `NEXT_PUBLIC_APP_NAME`
+- `SURVEY_GROUPS` or `NEXT_PUBLIC_SURVEY_GROUPS` as a comma-separated group list, for example `Group A,Group B,Group C`
+
+Tester groups are assigned in `scripts/seed.ts`. Each group has a `name` and `members`; the group name must match one of the configured groups above.
+
+For 4-member groups, each persona remains available until it receives 2 responses from that group. Groups with 2 or fewer members can select any persona without this cap.
 
 ## Scripts
 

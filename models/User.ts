@@ -3,6 +3,7 @@ import { Model, Schema, model, models } from "mongoose";
 export interface IUser {
   email: string;
   name: string;
+  group?: string;
   isAuthorized: boolean;
   hasSubmitted: boolean;
   createdAt: Date;
@@ -13,8 +14,9 @@ export interface IUser {
 
 const userSchema = new Schema<IUser>(
   {
-    email: { type: String, required: true, unique: true },
+    email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     name: { type: String, required: true },
+    group: { type: String, trim: true },
     isAuthorized: { type: Boolean, default: true },
     hasSubmitted: { type: Boolean, default: false },
     createdAt: { type: Date, default: Date.now },

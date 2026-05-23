@@ -5,7 +5,9 @@ import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 
 import { authOptions } from "@/lib/auth";
+import { getSurveyGroups, SURVEY_PERSONAS } from "@/lib/constants";
 import { connectToDatabase } from "@/lib/mongodb";
+import { getPersonaAvailability } from "@/lib/persona-availability";
 import AnonymousResponse from "@/models/AnonymousResponse";
 import SubmissionRecord from "@/models/SubmissionRecord";
 import User from "@/models/User";
@@ -25,10 +27,16 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json();
-  const { surveyId, answers } = body;
+  const { surveyId, answers, group, persona } = body;
 
-  if (!surveyId || !answers) {
+  if (!surveyId || !answers || !persona) {
     return NextResponse.json({ error: "Missing payload" }, { status: 400 });
+  }
+
+  const isValidPersona = SURVEY_PERSONAS.some((item) => item.key === persona);
+
+  if (!isValidPersona) {
+    return NextResponse.json({ error: "Invalid persona" }, { status: 400 });
   }
 
   await connectToDatabase();
@@ -38,9 +46,37 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
 
+  const normalizedGroup = user.group?.trim();
+  if (!normalizedGroup) {
+    return NextResponse.json({ error: "No group assigned to this tester" }, { status: 403 });
+  }
+
+  if (!getSurveyGroups().includes(normalizedGroup)) {
+    return NextResponse.json({ error: "Assigned group is not configured" }, { status: 500 });
+  }
+
+  if (group && String(group).trim() !== normalizedGroup) {
+    return NextResponse.json({ error: "You can only submit for your assigned group" }, { status: 403 });
+  }
+
   const existingRecord = await SubmissionRecord.findOne({ userId: user._id, surveyId });
   if (existingRecord) {
     return NextResponse.json({ error: "Already submitted" }, { status: 409 });
+  }
+
+  const personaAvailability = getPersonaAvailability(
+    await AnonymousResponse.find({ surveyId, group: normalizedGroup }).select("persona").lean(),
+    await User.countDocuments({ group: normalizedGroup, role: "tester", isAuthorized: true })
+  );
+  const availablePersonas = personaAvailability.available.map((item) => item.key);
+
+  if (!availablePersonas.includes(persona)) {
+    return NextResponse.json(
+      {
+        error: "That persona already has enough responses for your group. Please choose an available persona.",
+      },
+      { status: 409 }
+    );
   }
 
   let temporaryAnonymousToken: string | null = crypto.randomBytes(32).toString("hex");
@@ -58,6 +94,8 @@ export async function POST(request: Request) {
 
   await AnonymousResponse.create({
     surveyId,
+    group: normalizedGroup,
+    persona,
     answers: encryptedAnswers,
   });
 

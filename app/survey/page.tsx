@@ -3,7 +3,7 @@
 import { format } from "date-fns";
 import { AnimatePresence, motion } from "framer-motion";
 import { Star } from "lucide-react";
-import { useEffect, useMemo, useReducer, useState } from "react";
+import { Suspense, useEffect, useMemo, useReducer, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
 import Button from "@/components/ui/Button";
@@ -23,8 +23,16 @@ type Question = {
 };
 
 type SurveyStatus = {
-  hasSubmitted: boolean;
+  error?: string;
+  hasSubmitted?: boolean;
   surveyId?: string;
+  assignedGroup?: string;
+  groupOptions?: string[];
+  personaOptions?: Array<{ key: string; label: string }>;
+  personaAvailability?: {
+    counts: Record<string, number>;
+    available: Array<{ key: string; label: string }>;
+  } | null;
   survey?: {
     _id: string;
     title: string;
@@ -89,11 +97,12 @@ const heroLine = {
   visible: { opacity: 1, y: 0 },
 };
 
-export default function SurveyPage() {
+function SurveyContent() {
   const [status, setStatus] = useState<SurveyStatus | null>(null);
   const [state, dispatch] = useReducer(reducer, initialState);
   const [loading, setLoading] = useState(true);
   const [submitError, setSubmitError] = useState("");
+  const [selectedPersona, setSelectedPersona] = useState("");
   const searchParams = useSearchParams();
 
   useEffect(() => {
@@ -105,14 +114,17 @@ export default function SurveyPage() {
 
   useEffect(() => {
     const shouldSkipIntro = searchParams.get("start") === "1";
-    if (shouldSkipIntro && status?.survey && !status.hasSubmitted) {
+    if (shouldSkipIntro && status?.survey && !status.hasSubmitted && status.assignedGroup && selectedPersona) {
       dispatch({ type: "SET_STEP", payload: 1 });
     }
-  }, [searchParams, status]);
+  }, [searchParams, selectedPersona, status]);
 
   const questions = status?.survey?.questions ?? [];
   const totalSteps = questions.length + 2;
   const currentQuestion = state.step > 0 && state.step <= questions.length ? questions[state.step - 1] : null;
+  const availablePersonas = status?.personaAvailability?.available ?? [];
+  const personaCounts = status?.personaAvailability?.counts ?? {};
+  const isSetupComplete = Boolean(status?.assignedGroup && selectedPersona);
 
   const progress = useMemo(() => {
     if (totalSteps <= 1) return 0;
@@ -153,6 +165,10 @@ export default function SurveyPage() {
         </Card>
       </main>
     );
+  }
+
+  if (status?.error) {
+    return <main className="flex min-h-screen items-center justify-center p-6">{status.error}</main>;
   }
 
   if (!status?.survey) {
@@ -213,7 +229,7 @@ export default function SurveyPage() {
     const response = await fetch("/api/survey/submit", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ surveyId: status.surveyId, answers: payload }),
+      body: JSON.stringify({ surveyId: status.surveyId, group: status.assignedGroup, persona: selectedPersona, answers: payload }),
     });
 
     if (!response.ok) {
@@ -294,7 +310,48 @@ export default function SurveyPage() {
                     <LinkifyText text={status.survey.instructions} />
                   </p>
                 </div>
-                <Button onClick={onNext}>Begin Survey</Button>
+                <div className="space-y-4 rounded-[var(--radius)] border border-[var(--border)] p-4">
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-[var(--foreground)]">Your assigned group</p>
+                    <p className="min-h-11 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--muted)] px-3 py-2 text-[var(--foreground)]">
+                      {status.assignedGroup}
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label htmlFor="survey-persona" className="text-sm font-medium text-[var(--foreground)]">
+                      Select a persona to review
+                    </label>
+                    <select
+                      id="survey-persona"
+                      value={selectedPersona}
+                      disabled={!status.assignedGroup || availablePersonas.length === 0}
+                      onChange={(event) => setSelectedPersona(event.target.value)}
+                      className="min-h-11 w-full rounded-[var(--radius)] border border-[var(--input)] bg-[var(--background)] px-3 py-2 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      <option value="">
+                        {!status.assignedGroup ? "No group assigned" : "Choose a persona"}
+                      </option>
+                      {availablePersonas.map((persona) => (
+                        <option key={persona.key} value={persona.key}>
+                          {persona.label}
+                        </option>
+                      ))}
+                    </select>
+                    {status.assignedGroup ? (
+                      <div className="flex flex-wrap gap-2 text-xs text-[var(--muted-foreground)]">
+                        {(status.personaOptions ?? []).map((persona) => (
+                          <span key={persona.key} className="rounded-full border border-[var(--border)] px-2 py-1">
+                            {persona.label}: {personaCounts[persona.key] ?? 0}
+                          </span>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+                <Button onClick={onNext} disabled={!isSetupComplete}>
+                  Begin Survey
+                </Button>
               </Card>
             ) : currentQuestion ? (
               <Card className="space-y-4">
@@ -467,5 +524,13 @@ export default function SurveyPage() {
         </div>
       )}
     </main>
+  );
+}
+
+export default function SurveyPage() {
+  return (
+    <Suspense fallback={<main className="flex min-h-screen items-center justify-center">Loading...</main>}>
+      <SurveyContent />
+    </Suspense>
   );
 }

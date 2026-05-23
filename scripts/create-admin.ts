@@ -6,7 +6,7 @@ import bcryptjs from "bcryptjs";
 loadEnvConfig(process.cwd());
 
 async function createAdmin() {
-  const adminEmail = process.env.ADMIN_EMAIL;
+  const adminEmail = process.env.ADMIN_EMAIL?.toLowerCase().trim();
   const adminPassword = process.env.ADMIN_PASSWORD;
 
   if (!adminEmail) {
