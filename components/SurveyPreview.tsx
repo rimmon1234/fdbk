@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Star, X } from "lucide-react";
 import { useState, useMemo } from "react";
 import Button from "@/components/ui/Button";
+import LinkifyText from "@/components/LinkifyText";
 
 interface Question {
   _id?: string;
@@ -125,14 +126,28 @@ export default function SurveyPreview({ isOpen, onClose, surveyData }: SurveyPre
                     {surveyData.title || "Untitled Survey"}
                   </h1>
                   {surveyData.introduction && (
-                    <p className="text-[var(--foreground)] leading-relaxed">{surveyData.introduction}</p>
+                    <div className="border-l-2 border-[var(--secondary)] pl-4 py-1 text-sm text-[var(--muted-foreground)] italic bg-[var(--muted)]/30 rounded-r whitespace-pre-line break-words">
+                      <LinkifyText text={surveyData.introduction} />
+                    </div>
                   )}
                   {surveyData.description && (
-                    <p className="text-[var(--muted-foreground)] leading-relaxed">{surveyData.description}</p>
+                    <div className="space-y-2">
+                      <p className="text-base font-semibold uppercase tracking-wide text-[var(--muted-foreground)]">
+                        Instructions
+                      </p>
+                      <p className="pl-2 text-[var(--foreground)] leading-relaxed whitespace-pre-line break-words">
+                        <LinkifyText text={surveyData.description} />
+                      </p>
+                    </div>
                   )}
                   {surveyData.disclaimer && (
-                    <div className="border-l-2 border-[var(--secondary)] pl-4 py-1 text-sm text-[var(--muted-foreground)] italic bg-[var(--muted)]/30 rounded-r">
-                      {surveyData.disclaimer}
+                    <div className="space-y-2">
+                      <p className="text-base font-semibold uppercase tracking-wide text-[var(--muted-foreground)]">
+                        Disclaimer
+                      </p>
+                      <p className="pl-2 text-[var(--foreground)] leading-relaxed whitespace-pre-line break-words">
+                        <LinkifyText text={surveyData.disclaimer} />
+                      </p>
                     </div>
                   )}
                   <div className="grid gap-2 pt-2 text-xs text-[var(--muted-foreground)]">
@@ -140,7 +155,9 @@ export default function SurveyPreview({ isOpen, onClose, surveyData }: SurveyPre
                     {surveyData.instructions && (
                       <div className="mt-2 p-3 rounded-lg bg-[var(--card)] border border-[var(--border)]">
                         <p className="font-semibold text-[var(--foreground)] mb-1">Instructions:</p>
-                        <p>{surveyData.instructions}</p>
+                        <p className="whitespace-pre-line break-words">
+                          <LinkifyText text={surveyData.instructions} />
+                        </p>
                       </div>
                     )}
                   </div>
@@ -154,8 +171,8 @@ export default function SurveyPreview({ isOpen, onClose, surveyData }: SurveyPre
               {step > 0 && currentQuestion && (
                 <div className="space-y-5">
                   <div className="flex items-start gap-2">
-                    <h2 className="text-xl font-medium text-[var(--foreground)]">
-                      {currentQuestion.prompt || "Blank Question Prompt"}
+                    <h2 className="text-xl font-medium text-[var(--foreground)] whitespace-pre-line break-words">
+                      <LinkifyText text={currentQuestion.prompt || "Blank Question Prompt"} />
                     </h2>
                     {currentQuestion.isRequired && (
                       <span className="text-[var(--destructive)] text-sm font-bold" title="Required">*</span>

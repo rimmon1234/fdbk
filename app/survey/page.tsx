@@ -8,6 +8,7 @@ import { useSearchParams } from "next/navigation";
 
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
+import LinkifyText from "@/components/LinkifyText";
 
 type Question = {
   _id: string;
@@ -260,13 +261,28 @@ export default function SurveyPage() {
                   <motion.h1 variants={heroLine} className="text-3xl font-semibold text-[var(--foreground)]">
                     {status.survey.title}
                   </motion.h1>
-                  <motion.p variants={heroLine}>{status.survey.introduction}</motion.p>
-                  <motion.p variants={heroLine} className="text-[var(--muted-foreground)]">
-                    {status.survey.description}
-                  </motion.p>
+                  <motion.div
+                    variants={heroLine}
+                    className="border-l-2 border-[var(--secondary)] pl-4 text-sm text-[var(--muted-foreground)] whitespace-pre-line break-words"
+                  >
+                    <LinkifyText text={status.survey.introduction} />
+                  </motion.div>
+                  <motion.div variants={heroLine} className="space-y-2">
+                    <p className="text-base font-semibold uppercase tracking-wide text-[var(--muted-foreground)]">
+                      Instructions
+                    </p>
+                    <p className="pl-2 text-[var(--foreground)] whitespace-pre-line break-words">
+                      <LinkifyText text={status.survey.description} />
+                    </p>
+                  </motion.div>
                 </motion.div>
-                <div className="border-l-2 border-[var(--secondary)] pl-4 text-sm text-[var(--muted-foreground)]">
-                  {status.survey.disclaimer}
+                <div className="space-y-2">
+                  <p className="text-base font-semibold uppercase tracking-wide text-[var(--muted-foreground)]">
+                    Disclaimer
+                  </p>
+                  <p className="pl-2 text-[var(--foreground)] whitespace-pre-line break-words">
+                    <LinkifyText text={status.survey.disclaimer} />
+                  </p>
                 </div>
                 <div className="grid gap-2 text-sm text-[var(--muted-foreground)]">
                   <p>Created: {format(new Date(status.survey.createdAt), "PPP")}</p>
@@ -274,13 +290,17 @@ export default function SurveyPage() {
                     Expires: {status.survey.expiresAt ? format(new Date(status.survey.expiresAt), "PPP") : "No expiry"}
                   </p>
                   <p>Estimated: {status.survey.estimatedMinutes ?? "N/A"} minutes</p>
-                  <p>{status.survey.instructions}</p>
+                  <p className="whitespace-pre-line break-words">
+                    <LinkifyText text={status.survey.instructions} />
+                  </p>
                 </div>
                 <Button onClick={onNext}>Begin Survey</Button>
               </Card>
             ) : currentQuestion ? (
               <Card className="space-y-4">
-                <h2 className="text-xl font-semibold">{currentQuestion.prompt}</h2>
+                <h2 className="text-xl font-semibold whitespace-pre-line break-words">
+                  <LinkifyText text={currentQuestion.prompt} />
+                </h2>
                 {currentQuestion.type === "text" ? (
                   <>
                     <textarea
