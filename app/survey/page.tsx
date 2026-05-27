@@ -159,6 +159,65 @@ function SurveyContent() {
     if (totalSteps <= 1) return 0;
     return (state.step / (totalSteps - 1)) * 100;
   }, [state.step, totalSteps]);
+  const showInlineInfo = shouldSkipIntro && state.step > 0;
+  const renderInlineInfo = () => (
+    <div className="relative">
+      <button
+        onClick={() => setIsInfoOpen((prev) => !prev)}
+        className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--primary)] text-[var(--primary-foreground)] shadow-lg hover:opacity-90 hover:scale-105 active:scale-95 transition-all duration-150 cursor-pointer"
+        title="View Instructions & Disclaimer"
+        aria-label="View Instructions & Disclaimer"
+      >
+        <Info className="h-5 w-5" />
+      </button>
+      <AnimatePresence>
+        {isInfoOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: 12, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 12, scale: 0.98 }}
+            transition={{ duration: 0.2 }}
+            className="absolute right-0 top-full z-50 mt-2 w-[90vw] max-w-sm rounded-[var(--radius)] border border-[var(--border)] bg-[var(--card)] p-5 shadow-2xl space-y-4"
+          >
+            <div className="flex items-center justify-between border-b border-[var(--border)] pb-2">
+              <h3 className="font-semibold text-[var(--foreground)] flex items-center gap-2">
+                <Info className="h-4 w-4 text-[var(--primary)]" />
+                Instructions & Disclaimer
+              </h3>
+              <button
+                onClick={() => setIsInfoOpen(false)}
+                className="rounded-full p-1 text-[var(--muted-foreground)] hover:bg-[var(--accent)] hover:text-[var(--foreground)] transition-colors cursor-pointer"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="max-h-60 overflow-y-auto space-y-4 pr-1 text-sm text-[var(--foreground)]">
+              {status.survey.description ? (
+                <div className="space-y-1">
+                  <p className="font-semibold text-[var(--muted-foreground)] uppercase tracking-wide text-xs">
+                    Instructions
+                  </p>
+                  <p className="whitespace-pre-line break-words pl-1 text-[var(--foreground)]">
+                    <LinkifyText text={status.survey.description} />
+                  </p>
+                </div>
+              ) : null}
+              {status.survey.disclaimer ? (
+                <div className="space-y-1">
+                  <p className="font-semibold text-[var(--muted-foreground)] uppercase tracking-wide text-xs">
+                    Disclaimer
+                  </p>
+                  <p className="whitespace-pre-line break-words pl-1 text-[var(--foreground)]">
+                    <LinkifyText text={status.survey.disclaimer} />
+                  </p>
+                </div>
+              ) : null}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
 
   if (loading) {
     return <main className="flex min-h-screen items-center justify-center">Loading...</main>;
@@ -272,6 +331,10 @@ function SurveyContent() {
 
   return (
     <main className="flex min-h-screen flex-col bg-[var(--background)]">
+      <div className="fixed right-4 top-20 z-50 flex items-center gap-2">
+        <ThemeToggle className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)]" />
+        {showInlineInfo ? renderInlineInfo() : null}
+      </div>
       {state.step > 0 && (
         <div className="sticky top-0 z-30 bg-[var(--background)] px-4 pt-4">
           <div className="h-1 w-full overflow-hidden rounded bg-[var(--muted)]">
@@ -399,38 +462,39 @@ function SurveyContent() {
                 </Button>
               </Card>
             ) : currentQuestion ? (
-              <Card className="space-y-4">
-                <h2 className="text-xl font-semibold whitespace-pre-line break-words">
-                  <LinkifyText text={currentQuestion.prompt} />
-                </h2>
-                {currentQuestion.type === "text" ? (
-                  <>
-                    <textarea
-                      value={String(state.answers[currentQuestion._id] ?? "")}
-                      onChange={(event) =>
-                        dispatch({
-                          type: "SET_ANSWER",
-                          questionId: currentQuestion._id,
-                          value: event.target.value.slice(0, currentQuestion.characterLimit ?? 1000),
-                        })
-                      }
-                      placeholder={currentQuestion.placeholder}
-                      className="min-h-32 w-full rounded-[var(--radius)] border border-[var(--input)] bg-[var(--background)] p-3"
-                    />
-                    <div className="flex flex-col sm:flex-row justify-between gap-1 text-sm text-[var(--muted-foreground)]">
-                      {currentQuestion.minCharacterLimit && String(state.answers[currentQuestion._id] ?? "").length < currentQuestion.minCharacterLimit ? (
-                        <span className="text-[var(--destructive)] font-medium">
-                          Minimum {currentQuestion.minCharacterLimit} characters required (currently {String(state.answers[currentQuestion._id] ?? "").length})
+              <div className="space-y-3">
+                <Card className="space-y-4">
+                  <h2 className="text-xl font-semibold whitespace-pre-line break-words">
+                    <LinkifyText text={currentQuestion.prompt} />
+                  </h2>
+                  {currentQuestion.type === "text" ? (
+                    <>
+                      <textarea
+                        value={String(state.answers[currentQuestion._id] ?? "")}
+                        onChange={(event) =>
+                          dispatch({
+                            type: "SET_ANSWER",
+                            questionId: currentQuestion._id,
+                            value: event.target.value.slice(0, currentQuestion.characterLimit ?? 1000),
+                          })
+                        }
+                        placeholder={currentQuestion.placeholder}
+                        className="min-h-32 w-full rounded-[var(--radius)] border border-[var(--input)] bg-[var(--background)] p-3"
+                      />
+                      <div className="flex flex-col sm:flex-row justify-between gap-1 text-sm text-[var(--muted-foreground)]">
+                        {currentQuestion.minCharacterLimit && String(state.answers[currentQuestion._id] ?? "").length < currentQuestion.minCharacterLimit ? (
+                          <span className="text-[var(--destructive)] font-medium">
+                            Minimum {currentQuestion.minCharacterLimit} characters required (currently {String(state.answers[currentQuestion._id] ?? "").length})
+                          </span>
+                        ) : (
+                          <span>Satisfies character requirements</span>
+                        )}
+                        <span>
+                          {(currentQuestion.characterLimit ?? 1000) - String(state.answers[currentQuestion._id] ?? "").length} characters remaining
                         </span>
-                      ) : (
-                        <span>Satisfies character requirements</span>
-                      )}
-                      <span>
-                        {(currentQuestion.characterLimit ?? 1000) - String(state.answers[currentQuestion._id] ?? "").length} characters remaining
-                      </span>
-                    </div>
-                  </>
-                ) : null}
+                      </div>
+                    </>
+                  ) : null}
 
                 {(currentQuestion.type === "radio" || currentQuestion.type === "checkbox") && currentQuestion.options ? (
                   <div className="space-y-2">
@@ -533,20 +597,23 @@ function SurveyContent() {
                   </div>
                 ) : null}
               </Card>
+            </div>
             ) : (
-              <Card className="space-y-4">
-                <h2 className="text-xl font-semibold">Any additional comments or suggestions?</h2>
-                <p className="text-sm text-[var(--muted-foreground)]">
-                  Optional (Your feedback is completely anonymous)
-                </p>
-                <textarea
-                  value={state.suggestions}
-                  onChange={(event) => dispatch({ type: "SET_SUGGESTIONS", payload: event.target.value.slice(0, 1000) })}
-                  className="min-h-40 w-full rounded-[var(--radius)] border border-[var(--input)] bg-[var(--background)] p-3"
-                />
-                <p className="text-sm text-[var(--muted-foreground)]">{1000 - state.suggestions.length} characters remaining</p>
-                {submitError ? <p className="text-sm text-[var(--destructive)]">{submitError}</p> : null}
-              </Card>
+              <div className="space-y-3">
+                <Card className="space-y-4">
+                  <h2 className="text-xl font-semibold">Any additional comments or suggestions?</h2>
+                  <p className="text-sm text-[var(--muted-foreground)]">
+                    Optional (Your feedback is completely anonymous)
+                  </p>
+                  <textarea
+                    value={state.suggestions}
+                    onChange={(event) => dispatch({ type: "SET_SUGGESTIONS", payload: event.target.value.slice(0, 1000) })}
+                    className="min-h-40 w-full rounded-[var(--radius)] border border-[var(--input)] bg-[var(--background)] p-3"
+                  />
+                  <p className="text-sm text-[var(--muted-foreground)]">{1000 - state.suggestions.length} characters remaining</p>
+                  {submitError ? <p className="text-sm text-[var(--destructive)]">{submitError}</p> : null}
+                </Card>
+              </div>
             )}
           </motion.div>
         </AnimatePresence>
@@ -569,64 +636,6 @@ function SurveyContent() {
         </div>
       )}
 
-      {/* Floating Info Button & Closable Popup */}
-      <div className="fixed bottom-6 right-6 z-40">
-        <button
-          onClick={() => setIsInfoOpen((prev) => !prev)}
-          className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--primary)] text-[var(--primary-foreground)] shadow-lg hover:opacity-90 hover:scale-105 active:scale-95 transition-all duration-150 cursor-pointer"
-          title="View Instructions & Disclaimer"
-          aria-label="View Instructions & Disclaimer"
-        >
-          <Info className="h-6 w-6" />
-        </button>
-      </div>
-
-      <AnimatePresence>
-        {isInfoOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            transition={{ duration: 0.2 }}
-            className="fixed bottom-20 right-6 z-50 w-[90vw] max-w-sm rounded-[var(--radius)] border border-[var(--border)] bg-[var(--card)] p-5 shadow-2xl space-y-4"
-          >
-            <div className="flex items-center justify-between border-b border-[var(--border)] pb-2">
-              <h3 className="font-semibold text-[var(--foreground)] flex items-center gap-2">
-                <Info className="h-4 w-4 text-[var(--primary)]" />
-                Instructions & Disclaimer
-              </h3>
-              <button
-                onClick={() => setIsInfoOpen(false)}
-                className="rounded-full p-1 text-[var(--muted-foreground)] hover:bg-[var(--accent)] hover:text-[var(--foreground)] transition-colors cursor-pointer"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-            <div className="max-h-60 overflow-y-auto space-y-4 pr-1 text-sm text-[var(--foreground)]">
-              {status.survey.description ? (
-                <div className="space-y-1">
-                  <p className="font-semibold text-[var(--muted-foreground)] uppercase tracking-wide text-xs">
-                    Instructions
-                  </p>
-                  <p className="whitespace-pre-line break-words pl-1 text-[var(--foreground)]">
-                    <LinkifyText text={status.survey.description} />
-                  </p>
-                </div>
-              ) : null}
-              {status.survey.disclaimer ? (
-                <div className="space-y-1">
-                  <p className="font-semibold text-[var(--muted-foreground)] uppercase tracking-wide text-xs">
-                    Disclaimer
-                  </p>
-                  <p className="whitespace-pre-line break-words pl-1 text-[var(--foreground)]">
-                    <LinkifyText text={status.survey.disclaimer} />
-                  </p>
-                </div>
-              ) : null}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </main>
   );
 }
@@ -634,7 +643,6 @@ function SurveyContent() {
 export default function SurveyPage() {
   return (
     <Suspense fallback={<main className="flex min-h-screen items-center justify-center">Loading...</main>}>
-      <ThemeToggle />
       <SurveyContent />
     </Suspense>
   );
