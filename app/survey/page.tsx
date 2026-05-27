@@ -192,27 +192,28 @@ function SurveyContent() {
               </button>
             </div>
             <div className="max-h-60 overflow-y-auto space-y-4 pr-1 text-sm text-[var(--foreground)]">
-              {status.survey.description ? (
-                <div className="space-y-1">
-                  <p className="font-semibold text-[var(--muted-foreground)] uppercase tracking-wide text-xs">
-                    Instructions
-                  </p>
-                  <p className="whitespace-pre-line break-words pl-1 text-[var(--foreground)]">
-                    <LinkifyText text={status.survey.description} />
-                  </p>
-                </div>
-              ) : null}
-              {status.survey.disclaimer ? (
-                <div className="space-y-1">
-                  <p className="font-semibold text-[var(--muted-foreground)] uppercase tracking-wide text-xs">
-                    Disclaimer
-                  </p>
-                  <p className="whitespace-pre-line break-words pl-1 text-[var(--foreground)]">
-                    <LinkifyText text={status.survey.disclaimer} />
-                  </p>
-                </div>
-              ) : null}
-            </div>
+        {status?.survey?.description ? (
+          <div className="space-y-1">
+            <p className="font-semibold text-[var(--muted-foreground)] uppercase tracking-wide text-xs">
+              Instructions
+            </p>
+            <p className="whitespace-pre-line break-words pl-1 text-[var(--foreground)]">
+              <LinkifyText text={status?.survey?.description ?? ""} />
+            </p>
+          </div>
+        ) : null}
+
+        {status?.survey?.disclaimer ? (
+          <div className="space-y-1">
+            <p className="font-semibold text-[var(--muted-foreground)] uppercase tracking-wide text-xs">
+              Disclaimer
+            </p>
+            <p className="whitespace-pre-line break-words pl-1 text-[var(--foreground)]">
+              <LinkifyText text={status?.survey?.disclaimer ?? ""} />
+            </p>
+          </div>
+        ) : null}
+      </div>
           </motion.div>
         )}
       </AnimatePresence>
